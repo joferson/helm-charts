@@ -1,0 +1,55 @@
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: {{ .Values.virtualService.name }}
+  namespace: {{ .Values.virtualService.namespace }}
+spec:
+  gateways:
+  - {{ .Values.virtualService.gateway }}
+  hosts:
+  - {{ .Values.virtualService.host }}
+  http:
+  - name: {{ .Values.virtualService.route.name }}
+    match:
+    - uri:
+        prefix: {{ .Values.virtualService.route.uriPrefix }}
+    rewrite:
+      uri: {{ .Values.virtualService.route.rewriteUri }}
+    route:
+    - destination:
+        host: {{ .Values.virtualService.route.destination.host }}
+        port:
+          number: {{ .Values.virtualService.route.destination.port }}
+    {{- if .Values.virtualService.cors }}
+    corsPolicy:
+      {{- if .Values.virtualService.cors.allowCredentials }}
+      allowCredentials: {{ .Values.virtualService.cors.allowCredentials }}
+      {{- end }}
+      {{- if .Values.virtualService.cors.allowHeaders }}
+      allowHeaders:
+      {{- range .Values.virtualService.cors.allowHeaders }}
+      - '{{ . }}'
+      {{- end }}
+      {{- end }}
+      {{- if .Values.virtualService.cors.allowMethods }}
+      allowMethods:
+      {{- range .Values.virtualService.cors.allowMethods }}
+      - '{{ . }}'
+      {{- end }}
+      {{- end }}
+      {{- if .Values.virtualService.cors.allowOrigins }}
+      allowOrigins:
+      {{- range .Values.virtualService.cors.allowOrigins }}
+      - exact: '{{ . }}'
+      {{- end }}
+      {{- end }}
+      {{- if .Values.virtualService.cors.exposeHeaders }}
+      exposeHeaders:
+      {{- range .Values.virtualService.cors.exposeHeaders }}
+      - '{{ . }}'
+      {{- end }}
+      {{- end }}
+      {{- if .Values.virtualService.cors.maxAge }}
+      maxAge: {{ .Values.virtualService.cors.maxAge }}
+      {{- end }}
+    {{- end }}

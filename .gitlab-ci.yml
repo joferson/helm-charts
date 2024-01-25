@@ -1,0 +1,51 @@
+#stages:
+#  - lint
+#  - deploy
+#
+#lint:
+#  stage: lint
+#  script:
+#    - helm lint ./helm-charts/meu-app
+#  only:
+#    - merge_requests
+#
+#deploy:
+#  stage: deploy
+#  script:
+#    - helm upgrade --install meu-app ./helm-charts/meu-app -f ./helm-charts/meu-app/values.yaml --namespace $KUBE_NAMESPACE
+#  only:
+#    - master
+#  environment:
+#    name: production
+
+stages:
+  - lint
+  - deploy
+
+variables:
+  HELM_CHART_DIR: "./helm-charts"
+
+before_script:
+  - echo "Executando pipeline para a branch $CI_COMMIT_REF_NAME"
+
+deploy:
+  stage: deploy
+  script:
+    - |
+      NAMESPACE=$(./extract-namespace.sh $HELM_CHART_DIR/$CI_COMMIT_REF_NAME/values.yaml)
+      if [ -z "$NAMESPACE" ]; then
+        echo "Namespace não encontrado no values.yaml"
+        exit 1
+      fi
+
+      if [ "$CI_COMMIT_REF_NAME" == "dev" ]; then
+        echo "Fazendo deploy no ambiente de desenvolvimento..."
+        helm upgrade --install my-app-dev $HELM_CHART_DIR --values $HELM_CHART_DIR/dev/values.yaml --namespace $NAMESPACE
+      elif [ "$CI_COMMIT_REF_NAME" == "master" ] || [ "$CI_COMMIT_REF_NAME" == "main" ]; then
+        echo "Fazendo deploy no ambiente de produção..."
+        helm upgrade --install my-app-prod $HELM_CHART_DIR --values $HELM_CHART_DIR/prod/values.yaml --namespace $NAMESPACE
+      fi
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "dev" || $CI_COMMIT_REF_NAME == "master" || $CI_COMMIT_REF_NAME == "main"'
+  environment:
+    name: $CI_COMMIT_REF_NAME

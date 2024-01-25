@@ -1,112 +1,113 @@
-# helm-charts
-helm-charts
-
-### Exemplo de README.md para `values.yaml`
-
-```markdown
-# Configurações do Helm Chart
-
-Este documento detalha as configurações disponíveis no `values.yaml` para o Helm Chart. 
-
-## Valores Globais
-
-```yaml
+# Valores globais utilizados em várias seções do chart
 global:
+  # Nome comum do aplicativo usado em recursos como parte do fullname
   appName: mfe-analyzes
+  # Namespace onde os recursos serão implantados
   namespace: qstudio
+  # Informações da imagem do container
   image:
-    repository: pmspool.meudominio.com/docker-local/sandbox/frontends/mfe-analyzes
+    repository: pmspool.quod.com.br/docker-local/sandbox/frontends/mfe-analyzes
     tag: d1.0.0-20230310-122040
     pullPolicy: Always
-```
 
-Estes valores são usados em várias partes do chart e ajudam a minimizar a repetição.
-
-## Deployment do Kubernetes
-
-Configurações específicas para o Deployment do Kubernetes.
-
-```yaml
+# Configurações para o Deployment do Kubernetes
 deployment:
+  # Número de réplicas do Pod
   replicaCount: 1
   image:
+    # Referência à imagem do container definida na seção global
     repository: {{ .Values.global.image.repository }}
     tag: {{ .Values.global.image.tag }}
     pullPolicy: {{ .Values.global.image.pullPolicy }}
+  # Configurações de recursos para o container
   resources:
+    # Limites de recursos (CPU, memória)
     limits:
       cpu: 500m
       memory: 1Gi
+    # Solicitações de recursos (CPU, memória)
     requests:
       cpu: 100m
       memory: 256Mi
+  # Rótulos específicos do Pod
   podLabels:
     app: {{ .Values.global.appName }}
+  # Anotações específicas do Pod
   podAnnotations:
     example-annotation: "valor"
+  # Contexto de segurança do Pod
   securityContext: 
     runAsUser: 1000
+  # Sonda de vida (exemplo: HTTP GET /health)
   livenessProbe:
     httpGet:
       path: /health
       port: http
     initialDelaySeconds: 10
     periodSeconds: 5
+  # Sonda de prontidão (exemplo: HTTP GET /ready)
   readinessProbe:
     httpGet:
       path: /ready
       port: http
     initialDelaySeconds: 5
     periodSeconds: 5
+  # Seletor de nó para agendamento do Pod
   nodeSelector:
     disktype: ssd
+  # Afinidades para agendamento do Pod
   affinity:
     podAntiAffinity:
       # Exemplo de afinidade
+  # Tolerâncias para agendamento do Pod
   tolerations:
     - key: "key"
       operator: "Exists"
       effect: "NoExecute"
       tolerationSeconds: 6000
+  # Segredos para pull de imagens
   imagePullSecrets:
     - name: jfrog-registry
+  # Montagens de volumes para o container
   volumeMounts:
     - name: config-volume
       mountPath: /etc/config
+  # Volumes a serem usados no Pod
   volumes:
     - name: config-volume
       configMap:
         name: my-config-map
-```
 
-## Configurações do Kubernetes Service
-
-```yaml
+# Configurações para o Kubernetes Service
 service:
+  # Tipo do serviço (ex: ClusterIP, NodePort, LoadBalancer)
   type: NodePort
+  # Porta exposta pelo serviço
   port: 80
+  # Porta alvo nos Pods
   targetPort: http
+  # Protocolo (TCP/UDP)
   protocol: TCP
+  # Nome do serviço
   name: http
-```
 
-Define o tipo de serviço, portas e protocolo.
-
-## Istio VirtualService
-
-Configurações para o Istio VirtualService.
-
-```yaml
+# Configurações para o Istio VirtualService
 virtualService:
+  # Nome do VirtualService
   name: vs-{{ .Values.global.appName }}
+  # Gateway do Istio associado
   gateway: mfe-gateway
-  host: studio-dev.meudominio.com
+  # Host associado ao VirtualService
+  host: studio-dev.quod.com.br
+  # Regras de roteamento
   route:
     uriPrefix: /mfe-analisa/
     rewriteUri: /
+    # Destino do roteamento
     destination:
       host: analises-{{ .Values.global.appName }}
       port: 80
+  # Política CORS (Cross-Origin Resource Sharing)
   cors:
     allowCredentials: true
     allowHeaders:
@@ -118,13 +119,9 @@ virtualService:
     - PUT
     - DELETE
     allowOrigins:
-    - exact: https://studio-dev.meudominio.com
+    - exact: https://studio-dev.quod.com.br
     - exact: http://localhost:9000
     exposeHeaders:
     - Content-Length
     - Content-Range
-```
-
-Estas configurações incluem regras de roteamento e políticas CORS.
-```
-
+    maxAge: 10m
