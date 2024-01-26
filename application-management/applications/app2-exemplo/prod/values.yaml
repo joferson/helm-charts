@@ -6,7 +6,7 @@ global:
   namespace: qstudio
   # Informações da imagem do container
   image:
-    repository: pmspool.quod.com.br/docker-local/sandbox/frontends/mfe-analyzes
+    repository: pmspool.meudominio.com/docker-local/sandbox/frontends/mfe-analyzes
     tag: d1.0.0-20230310-122040
     pullPolicy: Always
 
@@ -98,7 +98,7 @@ virtualService:
   # Gateway do Istio associado
   gateway: mfe-gateway
   # Host associado ao VirtualService
-  host: studio-dev.quod.com.br
+  host: studio-dev.meudominio.com
   # Regras de roteamento
   route:
     uriPrefix: /mfe-analisa/
@@ -119,7 +119,7 @@ virtualService:
     - PUT
     - DELETE
     allowOrigins:
-    - exact: https://studio-dev.quod.com.br
+    - exact: https://studio-dev.meudominio.com
     - exact: http://localhost:9000
     exposeHeaders:
     - Content-Length

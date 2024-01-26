@@ -114,7 +114,7 @@ virtualService:
   specific:
     name: "filtros-vs-ms"
     gateways: ["API-gateway"]
-    hosts: ["api-qstudio-dev.quod.com.br"]
+    hosts: ["api-qstudio-dev.meudominio.com"]
     http:
       - name: "filtros-ms"
         match:
@@ -132,7 +132,7 @@ virtualService:
           allowHeaders: ["*"]
           allowMethods: ["POST", "OPTIONS", "GET", "PUT", "DELETE"]
           allowOrigins:
-            - exact: "https://qstudio-dev.quod.com.br"
+            - exact: "https://qstudio-dev.meudominio.com"
             - exact: "http://localhost:9000"
           exposeHeaders: ["Content-Length", "Content-Range"]
           maxAge: "10m"
