@@ -2,7 +2,7 @@ apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
   name: {{ .Values.virtualService.specific.name }}
-  namespace: {{ .Values.virtualService.namespace }}
+  namespace: {{ .Values.global.namespace }}
 spec:
   {{- if .Values.virtualService.gateways }}
   gateways:

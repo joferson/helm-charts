@@ -1,68 +1,54 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "application-management.fullname" . }}
+  name: {{ .Values.deployment.name }}
+  namespace: {{ .Values.global.namespace }}
   labels:
-    {{- include "application-management.labels" . | nindent 4 }}
+    {{- toYaml .Values.global.labels | nindent 4 }}
 spec:
-  {{- if not .Values.autoscaling.enabled }}
-  replicas: {{ .Values.replicaCount }}
-  {{- end }}
+  replicas: {{ .Values.deployment.replicas }}
   selector:
     matchLabels:
-      {{- include "application-management.selectorLabels" . | nindent 6 }}
+      {{- toYaml .Values.deployment.selector.matchLabels | nindent 6 }}
+  strategy:
+    {{- toYaml .Values.deployment.strategy | nindent 4 }}
+  minReadySeconds: {{ .Values.deployment.minReadySeconds }}
+  revisionHistoryLimit: {{ .Values.deployment.revisionHistoryLimit }}
+  progressDeadlineSeconds: {{ .Values.deployment.progressDeadlineSeconds }}
   template:
     metadata:
-      {{- with .Values.podAnnotations }}
-      annotations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
       labels:
-        {{- include "application-management.labels" . | nindent 8 }}
-        {{- with .Values.podLabels }}
-        {{- toYaml . | nindent 8 }}
-        {{- end }}
+        {{- toYaml .Values.deployment.template.metadata.labels | nindent 8 }}
+      annotations:
+        {{- toYaml .Values.deployment.template.metadata.annotations | nindent 8 }}
     spec:
-      {{- with .Values.imagePullSecrets }}
-      imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      serviceAccountName: {{ include "application-management.serviceAccountName" . }}
-      securityContext:
-        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{- if .Values.deployment.template.spec.containers }}
       containers:
-        - name: {{ .Chart.Name }}
-          securityContext:
-            {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
-          ports:
-            - name: http
-              containerPort: {{ .Values.service.port }}
-              protocol: TCP
-          livenessProbe:
-            {{- toYaml .Values.livenessProbe | nindent 12 }}
-          readinessProbe:
-            {{- toYaml .Values.readinessProbe | nindent 12 }}
-          resources:
-            {{- toYaml .Values.resources | nindent 12 }}
-          {{- with .Values.volumeMounts }}
-          volumeMounts:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
-      {{- with .Values.volumes }}
+        {{- toYaml .Values.deployment.template.spec.containers | nindent 8 }}
+      {{- end }}
+      {{- if .Values.deployment.template.spec.volumes }}
       volumes:
-        {{- toYaml . | nindent 8 }}
+        {{- toYaml .Values.deployment.template.spec.volumes | nindent 8 }}
       {{- end }}
-      {{- with .Values.nodeSelector }}
-      nodeSelector:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.affinity }}
+      serviceAccountName: {{ .Values.deployment.template.spec.serviceAccountName }}
+      securityContext:
+        {{- toYaml .Values.deployment.template.spec.securityContext | nindent 8 }}
+      imagePullSecrets:
+        {{- range .Values.deployment.template.spec.imagePullSecrets }}
+        - name: {{ .name }}
+        {{- end }}
       affinity:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.tolerations }}
+        {{- toYaml .Values.deployment.template.spec.affinity | nindent 8 }}
       tolerations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
+        {{- toYaml .Values.deployment.template.spec.tolerations | nindent 8 }}
+      nodeSelector:
+        {{- toYaml .Values.deployment.template.spec.nodeSelector | nindent 8 }}
+      hostAliases:
+        {{- toYaml .Values.deployment.template.spec.hostAliases | nindent 8 }}
+      dnsPolicy: {{ .Values.deployment.template.spec.dnsPolicy }}
+      hostNetwork: {{ .Values.deployment.template.spec.hostNetwork }}
+      restartPolicy: {{ .Values.deployment.template.spec.restartPolicy }}
+      terminationGracePeriodSeconds: {{ .Values.deployment.template.spec.terminationGracePeriodSeconds }}
+      schedulerName: {{ .Values.deployment.template.spec.schedulerName }}
+      priorityClassName: {{ .Values.deployment.template.spec.priorityClassName }}
+      runtimeClassName: {{ .Values.deployment.template.spec.runtimeClassName }}
