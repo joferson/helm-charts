@@ -1,55 +1,60 @@
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
-  name: {{ .Values.virtualService.name }}
+  name: {{ .Values.virtualService.specific.name }}
   namespace: {{ .Values.virtualService.namespace }}
 spec:
+  {{- if .Values.virtualService.gateways }}
   gateways:
-  - {{ .Values.virtualService.gateway }}
+    {{- toYaml .Values.virtualService.gateways | nindent 4 }}
+  {{- end }}
+  {{- if .Values.virtualService.hosts }}
   hosts:
-  - {{ .Values.virtualService.host }}
+    {{- toYaml .Values.virtualService.hosts | nindent 4 }}
+  {{- end }}
+  {{- if .Values.virtualService.http }}
   http:
-  - name: {{ .Values.virtualService.route.name }}
-    match:
-    - uri:
-        prefix: {{ .Values.virtualService.route.uriPrefix }}
-    rewrite:
-      uri: {{ .Values.virtualService.route.rewriteUri }}
-    route:
-    - destination:
-        host: {{ .Values.virtualService.route.destination.host }}
-        port:
-          number: {{ .Values.virtualService.route.destination.port }}
-    {{- if .Values.virtualService.cors }}
-    corsPolicy:
-      {{- if .Values.virtualService.cors.allowCredentials }}
-      allowCredentials: {{ .Values.virtualService.cors.allowCredentials }}
-      {{- end }}
-      {{- if .Values.virtualService.cors.allowHeaders }}
-      allowHeaders:
-      {{- range .Values.virtualService.cors.allowHeaders }}
-      - '{{ . }}'
-      {{- end }}
-      {{- end }}
-      {{- if .Values.virtualService.cors.allowMethods }}
-      allowMethods:
-      {{- range .Values.virtualService.cors.allowMethods }}
-      - '{{ . }}'
-      {{- end }}
-      {{- end }}
-      {{- if .Values.virtualService.cors.allowOrigins }}
-      allowOrigins:
-      {{- range .Values.virtualService.cors.allowOrigins }}
-      - exact: '{{ . }}'
-      {{- end }}
-      {{- end }}
-      {{- if .Values.virtualService.cors.exposeHeaders }}
-      exposeHeaders:
-      {{- range .Values.virtualService.cors.exposeHeaders }}
-      - '{{ . }}'
-      {{- end }}
-      {{- end }}
-      {{- if .Values.virtualService.cors.maxAge }}
-      maxAge: {{ .Values.virtualService.cors.maxAge }}
-      {{- end }}
+    {{- range .Values.virtualService.http }}
+    - name: {{ .name }}
+      match:
+        {{- toYaml .match | nindent 6 }}
+      rewrite:
+        {{- toYaml .rewrite | nindent 6 }}
+      route:
+        {{- toYaml .route | nindent 6 }}
+      corsPolicy:
+        {{- toYaml .corsPolicy | nindent 6 }}
     {{- end }}
+  {{- end }}
+  {{- if .Values.virtualService.tls }}
+  tls:
+    {{- toYaml .Values.virtualService.tls | nindent 4 }}
+  {{- end }}
+  {{- if .Values.virtualService.tcp }}
+  tcp:
+    {{- toYaml .Values.virtualService.tcp | nindent 4 }}
+  {{- end }}
+  {{- if .Values.virtualService.exportTo }}
+  exportTo:
+    {{- toYaml .Values.virtualService.exportTo | nindent 4 }}
+  {{- end }}
+
+  # Configurações específicas do seu exemplo
+  {{- if .Values.virtualService.specific }}
+  gateways:
+    {{- toYaml .Values.virtualService.specific.gateways | nindent 4 }}
+  hosts:
+    {{- toYaml .Values.virtualService.specific.hosts | nindent 4 }}
+  http:
+    {{- range .Values.virtualService.specific.http }}
+    - name: {{ .name }}
+      match:
+        {{- toYaml .match | nindent 6 }}
+      rewrite:
+        {{- toYaml .rewrite | nindent 6 }}
+      route:
+        {{- toYaml .route | nindent 6 }}
+      corsPolicy:
+        {{- toYaml .corsPolicy | nindent 6 }}
+    {{- end }}
+  {{- end }}
