@@ -98,31 +98,45 @@ Configurações para o Istio VirtualService.
 
 ```yaml
 virtualService:
-  name: vs-{{ .Values.global.appName }}
-  gateway: mfe-gateway
-  host: studio-dev.meudominio.com
-  route:
-    uriPrefix: /mfe-analisa/
-    rewriteUri: /
-    destination:
-      host: analises-{{ .Values.global.appName }}
-      port: 80
-  cors:
-    allowCredentials: true
-    allowHeaders:
-    - '*'
-    allowMethods:
-    - POST
-    - OPTIONS
-    - GET
-    - PUT
-    - DELETE
-    allowOrigins:
-    - exact: https://studio-dev.meudominio.com
-    - exact: http://localhost:9000
-    exposeHeaders:
-    - Content-Length
-    - Content-Range
+  name: "custom-virtual-service"
+  namespace: "default"
+  gateways: []
+  hosts: []
+  http:
+    - match: []
+      rewrite: {}
+      route: []
+      corsPolicy: {}
+  tls: []
+  tcp: []
+  exportTo: ["*"]
+  # Configurações específicas do seu exemplo
+  specific:
+    name: "filtros-vs-ms"
+    gateways: ["API-gateway"]
+    hosts: ["api-qstudio-dev.quod.com.br"]
+    http:
+      - name: "filtros-ms"
+        match:
+          - uri:
+              prefix: "/filtros-ms/"
+        rewrite:
+          uri: "/"
+        route:
+          - destination:
+              host: "filtros-ms"
+              port:
+                number: 8080
+        corsPolicy:
+          allowCredentials: true
+          allowHeaders: ["*"]
+          allowMethods: ["POST", "OPTIONS", "GET", "PUT", "DELETE"]
+          allowOrigins:
+            - exact: "https://qstudio-dev.quod.com.br"
+            - exact: "http://localhost:9000"
+          exposeHeaders: ["Content-Length", "Content-Range"]
+          maxAge: "10m"
+
 ```
 
 Estas configurações incluem regras de roteamento e políticas CORS.
